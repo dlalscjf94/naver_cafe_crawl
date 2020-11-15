@@ -178,12 +178,17 @@ def get_url_lst():
                 page_cnt = page_cnt + 1
     """
 
+    # url_lst 파일을 생성했을 경우 이 코드를 통해 시간 단축 가능
     url_lst = read_xlsx()
 
     return url_lst, driver
 
 
 def crawl_url(url_lst, driver):
+
+    global t_text
+    global n_text
+    global cnt_text
 
     # 글제목 lst
     title_lst = []
@@ -196,6 +201,9 @@ def crawl_url(url_lst, driver):
 
     # 첨부파일 리스트
     att_lst = []
+
+    # URL_LST
+    f_url_lst = []
 
     driver = driver
 
@@ -210,16 +218,19 @@ def crawl_url(url_lst, driver):
         print("===============================================")
 
         try:
+
             title = driver.find_element_by_xpath('/html/body/div/div/div/div[2]/div[1]/div[1]/div/h3')
 
             print("제목 : ", title.text)
 
-            title_lst.append(title.text)
+            t_text = title.text
+
+            # title_lst.append(title.text)
 
         except:
 
-            title_lst.append('NULL')
-
+            # title_lst.append('NULL')
+            t_text = 'NULL'
 
         try:
 
@@ -227,11 +238,14 @@ def crawl_url(url_lst, driver):
 
             print("작성자 : ", nickname.text)
 
-            nickname_lst.append(nickname.text)
+            n_text = nickname.text
+
+            # nickname_lst.append(nickname.text)
 
         except:
 
-            nickname_lst.append('NULL')
+            # nickname_lst.append('NULL')
+            n_text = 'NULL'
 
         try:
 
@@ -241,11 +255,15 @@ def crawl_url(url_lst, driver):
 
             print("조회 수 : ", count_text)
 
-            cnt_lst.append(count_text)
+            cnt_text = count_text
+
+            # cnt_lst.append(count_text)
 
         except:
 
-            cnt_lst.append('NULL')
+            # cnt_lst.append('NULL')
+
+            cnt_text = 'NULL'
 
         try:
             """
@@ -258,45 +276,78 @@ def crawl_url(url_lst, driver):
             att_lst.append(att_file_link)
             """
 
-            att_files = driver.find_element_by_class_name('file_download')
+            # att_files = driver.find_element_by_class_name('file_download')
+
+            # 클래스 변경
+
+            att_files = driver.find_element_by_class_name('layer_attach')
 
             a_tags = att_files.find_elements_by_tag_name('a')
 
-            tot_link = ''
+            # tot_link = ''
 
             for a_tag in a_tags:
+
+                print(a_tag.get_attribute('href'))
 
                 link = a_tag.get_attribute('href')
 
                 # 2개 이상인경우 링크 이어 붙이기
                 if 'downapi.cafe.naver.com' in link:
 
-                    tot_link = tot_link + link
+                    print("첨부파일 링크 : ", link)
 
-                # 옛날게시글 링크 형태
+                    title_lst.append(t_text)
+                    nickname_lst.append(n_text)
+                    cnt_lst.append(cnt_text)
+                    att_lst.append(link)
+                    f_url_lst.append(url_lst[i])
+
+                    # tot_link = tot_link + ',' + link
+
+                # 옛날게시글 첨부파일 링크 형태 링크 추가 (20201114)
                 elif 'cafeattach.naver.net' in link:
 
-                    tot_link = tot_link + link
+                    print("첨부파일 링크 : ", link)
+
+                    title_lst.append(t_text)
+                    nickname_lst.append(n_text)
+                    cnt_lst.append(cnt_text)
+                    att_lst.append(link)
+                    f_url_lst.append(url_lst[i])
+
+                    # tot_link = tot_link + ',' + link
+
+                # 옛날게시글 첨부파일 링크 형태 링크 추가 (20201115)
+                elif 'bolgattach.naver.net' in link:
+
+                    print("첨부파일 링크 : ", link)
+
+                    title_lst.append(t_text)
+                    nickname_lst.append(n_text)
+                    cnt_lst.append(cnt_text)
+                    att_lst.append(link)
+                    f_url_lst.append(url_lst[i])
 
                 else:
 
                     pass
 
-            print("첨부파일 링크 : ", tot_link)
-            att_lst.append(tot_link)
-
         except:
 
             print("첨부파일이 없습니다.")
 
+            title_lst.append(t_text)
+            nickname_lst.append(n_text)
+            cnt_lst.append(cnt_text)
             att_lst.append('NULL')
+            f_url_lst.append(url_lst[i])
 
         # /html/body/div/div/div/div[2]/div[2]/div[1]/div[1]/div/ul
 
         print("===============================================")
 
-
-    dict = {"글제목": title_lst, "작성자": nickname_lst, "조회 수": cnt_lst, "첨부파일": att_lst}
+    dict = {"글제목": title_lst, "작성자": nickname_lst, "조회 수": cnt_lst, "첨부파일": att_lst, "URL": f_url_lst}
 
     df = pd.DataFrame(dict)
 
@@ -322,10 +373,16 @@ def read_xlsx():
     return url_lst
 
 
-if __name__ == '__main__':
+# 메인, 모듈 관리
+def main():
 
     url_lst, driver = get_url_lst()
 
     # make_xlsx(url_lst)
 
     crawl_url(url_lst, driver)
+
+
+if __name__ == '__main__':
+
+     main()
