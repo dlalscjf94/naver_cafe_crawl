@@ -64,8 +64,8 @@ def get_url_lst():
     """
 
     # 로그인 우회 성공 pyperclip 이용
-    id = 'nmecrew'
-    pw = 'NMECREW!!'
+    id = '본인ID입력'
+    pw = '본인PW입력'
     pyperclip.copy(id)
 
     driver.find_element_by_name("id").click()
